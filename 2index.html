@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ Anime Fun Generator</title>
+
+  <!-- Google Fonts: Bangers for titles, Nunito for body -->
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet" />
+
+  <!-- ═══════════════════════════════════════════
+       STYLES
+       ═══════════════════════════════════════════ -->
+  <style>
+
+    /* ── CSS VARIABLES ───────────────────────── */
+    :root {
+      --bg:        #08080f;
+      --surface:   #0e0e1c;
+      --card:      #12121f;
+      --border:    rgba(255,255,255,0.06);
+
+      --cyan:      #00f5ff;
+      --pink:      #ff2d78;
+      --gold:      #ffd700;
+      --green:     #39ff14;
+      --purple:    #bf5fff;
+      --orange:    #ff7b00;
+
+      --text:      #f0f0ff;
+      --muted:     #6a6a9a;
+
+      --font-title: 'Bangers', cursive;
+      --font-body:  'Nunito', sans-serif;
+
+      --radius:    16px;
+      --glow-cyan: 0 0 24px rgba(0,245,255,0.4);
+      --glow-pink: 0 0 24px rgba(255,45,120,0.4);
+      --glow-gold: 0 0 24px rgba(255,215,0,0.4);
+    }
+
+    /* ── RESET ───────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    /* ── BODY & BACKGROUND ───────────────────── */
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 60px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated background dots / grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(ellipse at 15% 10%, rgba(0,245,255,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 80%, rgba(255,45,120,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 50%, rgba(191,95,255,0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Animated scanline overlay for retro feel */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0.06) 3px,
+        rgba(0,0,0,0.06) 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Everything above bg layers */
+    .wrapper { position: relative; z-index: 2; width: 100%; max-width: 680px; }
+
+    /* ── HEADER ──────────────────────────────── */
+    .site-header {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .site-title {
+      font-family: var(--font-title);
+      font-size: clamp(3rem, 10vw, 5.5rem);
+      letter-spacing: 3px;
+      line-height: 1;
+      /* Neon gradient text */
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--pink) 50%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      /* Glow using text-shadow trick on a wrapper */
+      filter: drop-shadow(0 0 18px rgba(0,245,255,0.5));
+    }
+
+    .site-sub {
+      margin-top: 10px;
+      font-size: 1rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── CARDS ───────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 26px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    /* Top colored accent line per card */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .card-power::before  { background: linear-gradient(90deg, var(--cyan), var(--purple)); }
+    .card-char::before   { background: linear-gradient(90deg, var(--pink), var(--orange)); }
+    .card-item::before   { background: linear-gradient(90deg, var(--gold), var(--green)); }
+
+    /* Staggered reveal */
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+
+    .card-title {
+      font-family: var(--font-title);
+      font-size: 1.7rem;
+      letter-spacing: 2px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-power  .card-title { color: var(--cyan); }
+    .card-char   .card-title { color: var(--pink); }
+    .card-item   .card-title { color: var(--gold); }
+
+    /* ── INPUT ───────────────────────────────── */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(0,245,255,0.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"]:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0,245,255,0.12);
+    }
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    /* ── BUTTONS ─────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition:
+        transform 0.15s ease,
+        box-shadow  0.2s ease,
+        filter      0.2s ease;
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    /* Ripple layer */
+    .btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.12);
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .btn:hover::after { opacity: 1; }
+    .btn:active { transform: scale(0.95); }
+    .btn:hover  { transform: translateY(-2px); }
+
+    /* Cyan button */
+    .btn-cyan {
+      background: linear-gradient(135deg, #00c8d7, var(--cyan));
+      color: #001a1c;
+      box-shadow: 0 4px 18px rgba(0,245,255,0.25);
+    }
+    .btn-cyan:hover { box-shadow: var(--glow-cyan), 0 6px 24px rgba(0,245,255,0.3); }
+
+    /* Pink button */
+    .btn-pink {
+      background: linear-gradient(135deg, #cc1555, var(--pink));
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(255,45,120,0.25);
+    }
+    .btn-pink:hover { box-shadow: var(--glow-pink), 0 6px 24px rgba(255,45,120,0.3); }
+
+    /* Gold button */
+    .btn-gold {
+      background: linear-gradient(135deg, #e5b800, var(--gold));
+      color: #1a1000;
+      box-shadow: 0 4px 18px rgba(255,215,0,0.25);
+    }
+    .btn-gold:hover { box-shadow: var(--glow-gold), 0 6px 24px rgba(255,215,0,0.3); }
+
+    /* Ghost / reset button */
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      padding: 10px 16px;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.25); box-shadow: none; }
+
+    .btn-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ── RESULT BOX ──────────────────────────── */
+    .result-box {
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-top: 14px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.6;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      color: var(--text);
+      position: relative;
+      transition: border-color 0.3s;
+
+      /* Hidden by default */
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+    }
+
+    /* When result is visible */
+    .result-box.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    /* Colored glow per card */
+    .card-power .result-box.show  { border-color: rgba(0,245,255,0.3);    box-shadow: 0 0 20px rgba(0,245,255,0.08); }
+    .card-char  .result-box.show  { border-color: rgba(255,45,120,0.3);   box-shadow: 0 0 20px rgba(255,45,120,0.08); }
+    .card-item  .result-box.show  { border-color: rgba(255,215,0,0.3);    box-shadow: 0 0 20px rgba(255,215,0,0.08); }
+
+    /* Highlight the name or item */
+    .result-box .highlight {
+      font-family: var(--font-title);
+      font-size: 1.25rem;
+      letter-spacing: 1px;
+    }
+    .card-power .highlight { color: var(--cyan); }
+    .card-char  .highlight { color: var(--pink); }
+    .card-item  .highlight { color: var(--gold); }
+
+    /* ── FOOTER ──────────────────────────────── */
+    .site-footer {
+      margin-top: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+      animation: fadeUp 0.6s 0.5s ease both;
+    }
+
+    /* ── KEYFRAMES ───────────────────────────── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      0%   { opacity: 0; transform: scale(0.88) translateY(8px); }
+      70%  { transform: scale(1.03) translateY(-1px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* ── RESPONSIVE ──────────────────────────── */
+    @media (max-width: 480px) {
+      .input-row { flex-direction: column; }
+      .btn { width: 100%; }
+      .btn-row { flex-direction: column; }
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     HTML STRUCTURE
+     ═══════════════════════════════════════════════ -->
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <h1 class="site-title">⚡ ANIME FUN GENERATOR</h1>
+    <p class="site-sub">✨ Discover your anime destiny ✨</p>
+  </header>
+
+  <!-- ── CARD 1: NAME TO POWER ── -->
+  <div class="card card-power">
+    <h2 class="card-title">⚡ Name → Power</h2>
+
+    <!-- User types their name here -->
+    <div class="input-row">
+      <input
+        type="text"
+        id="nameInput"
+        placeholder="Enter your name..."
+        maxlength="30"
+        autocomplete="off"
+      />
+      <button class="btn btn-cyan" id="powerBtn">Awaken ⚡</button>
+    </div>
+
+    <!-- Buttons row: reset -->
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="powerReset">🔄 Reset</button>
+    </div>
+
+    <!-- Result appears here -->
+    <div class="result-box" id="powerResult"></div>
+  </div>
+
+
+  <!-- ── CARD 2: RANDOM CHARACTER ── -->
+  <div class="card card-char">
+    <h2 class="card-title">🗡️ Random Character</h2>
+
+    <div class="btn-row">
+      <button class="btn btn-pink" id="charBtn">Roll Character 🎲</button>
+      <button class="btn btn-ghost" id="charReset">🔄 Reset</button>
+    </div>
+
+    <!-- Result appears here -->
+    <div class="result-box" id="charResult"></div>
+  </div>
+
+
+  <!-- ── CARD 3: RANDOM ITEM ── -->
+  <div class="card card-item">
+    <h2 class="card-title">🏆 Random Item</h2>
+
+    <div class="btn-row">
+      <button class="btn btn-gold" id="itemBtn">Get Loot 🎁</button>
+      <button class="btn btn-ghost" id="itemReset">🔄 Reset</button>
+    </div>
+
+    <!-- Result appears here -->
+    <div class="result-box" id="itemResult"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    Made with ❤️ — Pure HTML, CSS &amp; JavaScript
+  </footer>
+
+</div><!-- /wrapper -->
+
+
+<!-- ═══════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════ -->
+<script>
+
+  /* ──────────────────────────────────────────────
+     DATA ARRAYS
+     Add more items here to expand the generators!
+  ────────────────────────────────────────────── */
+
+  // Anime-style powers (at least 10 required)
+  const powers = [
+    { name: "Infinity Void Slash",    emoji: "⚫" },
+    { name: "Dragon Flame Burst",     emoji: "🔥" },
+    { name: "Thunder God's Wrath",    emoji: "⚡" },
+    { name: "Shadow Clone Explosion", emoji: "👤" },
+    { name: "Celestial Time Freeze",  emoji: "🕰️" },
+    { name: "Soul Reaper's Edge",     emoji: "💀" },
+    { name: "Cosmic Mana Surge",      emoji: "🌌" },
+    { name: "Iron Sand Manipulation", emoji: "🌪️" },
+    { name: "Blood Moon Awakening",   emoji: "🌙" },
+    { name: "Demon King Possession",  emoji: "😈" },
+    { name: "Phoenix Rebirth Flame",  emoji: "🦅" },
+    { name: "Absolute Zero Blizzard", emoji: "❄️" },
+    { name: "Divine Sword of Light",  emoji: "✨" },
+    { name: "Forbidden Dark Arts",    emoji: "🔮" },
+  ];
+
+  // Anime character names (at least 10 required)
+  const characters = [
+    { name: "Kira Shadowbane",   title: "The Silent Assassin",  emoji: "🗡️" },
+    { name: "Ryu Stormcaller",   title: "Dragon Sovereign",     emoji: "🐉" },
+    { name: "Luna Voidwalker",   title: "Mistress of the Abyss",emoji: "🌙" },
+    { name: "Zephyr Ironclad",   title: "Unbreakable Shield",   emoji: "🛡️" },
+    { name: "Akira Flameheart",  title: "The Burning Sage",     emoji: "🔥" },
+    { name: "Nova Starfall",     title: "Celestial Wanderer",   emoji: "⭐" },
+    { name: "Rein Bloodthorn",   title: "Cursed Hunter",        emoji: "🩸" },
+    { name: "Seika Thunderborn", title: "Heir of Lightning",    emoji: "⚡" },
+    { name: "Mira Phantomshift", title: "The Hollow Specter",   emoji: "👻" },
+    { name: "Kaito Dawnblade",   title: "First Ray of Justice", emoji: "☀️" },
+    { name: "Yuki Frostweave",   title: "Ice Empress",          emoji: "❄️" },
+    { name: "Dio Ravenmoor",     title: "Lord of Shadows",      emoji: "🖤" },
+  ];
+
+  // Fantasy/anime items (at least 10 required)
+  const items = [
+    { name: "Blade of the Fallen God",   rarity: "Legendary", emoji: "⚔️" },
+    { name: "Orb of Infinite Mana",      rarity: "Epic",      emoji: "🔮" },
+    { name: "Cloak of the Void",         rarity: "Legendary", emoji: "🌑" },
+    { name: "Ring of Dragon's Breath",   rarity: "Rare",      emoji: "💍" },
+    { name: "Scroll of Forbidden Seals", rarity: "Epic",      emoji: "📜" },
+    { name: "Shard of the First Star",   rarity: "Legendary", emoji: "⭐" },
+    { name: "Potion of Thousand Forms",  rarity: "Rare",      emoji: "🧪" },
+    { name: "Gauntlet of Titan's Grip",  rarity: "Epic",      emoji: "🦾" },
+    { name: "Demon Eye Crystal",         rarity: "Legendary", emoji: "👁️" },
+    { name: "Wings of Seraph",           rarity: "Mythic",    emoji: "🪽" },
+    { name: "Thunder God's Sandals",     rarity: "Rare",      emoji: "👟" },
+    { name: "Phoenix Tear Gem",          rarity: "Epic",      emoji: "💎" },
+    { name: "Mask of the Moon Wolf",     rarity: "Legendary", emoji: "🐺" },
+    { name: "Spirit Chain Bracelet",     rarity: "Rare",      emoji: "✨" },
+  ];
+
+
+  /* ──────────────────────────────────────────────
+     UTILITY FUNCTION
+     Returns a random item from any array
+  ────────────────────────────────────────────── */
+  function getRandom(array) {
+    return array[Math.floor(Math.random() * array.length)];
+  }
+
+
+  /* ──────────────────────────────────────────────
+     SHOW RESULT HELPER
+     Injects HTML into a result box and animates it
+  ────────────────────────────────────────────── */
+  function showResult(boxId, html) {
+    const box = document.getElementById(boxId);
+    // Remove class to reset animation, then re-add after short delay
+    box.classList.remove('show');
+    box.innerHTML = html;
+
+    // Tiny delay so animation re-triggers even for same content
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        box.classList.add('show');
+      });
+    });
+  }
+
+
+  /* ──────────────────────────────────────────────
+     HIDE / RESET HELPER
+  ────────────────────────────────────────────── */
+  function hideResult(boxId) {
+    const box = document.getElementById(boxId);
+    box.classList.remove('show');
+    // Clear content after animation fades
+    setTimeout(() => { box.innerHTML = ''; }, 300);
+  }
+
+
+  /* ──────────────────────────────────────────────
+     FEATURE 1 — NAME TO POWER GENERATOR
+  ────────────────────────────────────────────── */
+  document.getElementById('powerBtn').addEventListener('click', function () {
+    // Get the user's name from the input field
+    const name = document.getElementById('nameInput').value.trim();
+
+    // Validate: name must not be empty
+    if (!name) {
+      showResult('powerResult', '⚠️ Please enter your name first!');
+      return;
+    }
+
+    // Pick a random power from the array
+    const power = getRandom(powers);
+
+    // Build the result HTML with highlights and emoji
+    const html = `
+      ${power.emoji}
+      <span class="highlight">${name}</span>,
+      your power is the
+      <span class="highlight">${power.name}</span>!
+      ${power.emoji}
+    `;
+
+    // Display it!
+    showResult('powerResult', html);
+  });
+
+  // Also trigger on Enter key in the input
+  document.getElementById('nameInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('powerBtn').click();
+  });
+
+  // Reset button for power card
+  document.getElementById('powerReset').addEventListener('click', function () {
+    document.getElementById('nameInput').value = ''; // Clear the input
+    hideResult('powerResult');                        // Hide the result box
+  });
+
+
+  /* ──────────────────────────────────────────────
+     FEATURE 2 — RANDOM CHARACTER GENERATOR
+  ────────────────────────────────────────────── */
+  document.getElementById('charBtn').addEventListener('click', function () {
+    // Pick a random character
+    const char = getRandom(characters);
+
+    // Build the result HTML
+    const html = `
+      ${char.emoji}
+      You got
+      <span class="highlight">${char.name}</span>
+      — "${char.title}"
+      ${char.emoji}
+    `;
+
+    showResult('charResult', html);
+  });
+
+  // Reset button for character card
+  document.getElementById('charReset').addEventListener('click', function () {
+    hideResult('charResult');
+  });
+
+
+  /* ──────────────────────────────────────────────
+     FEATURE 3 — RANDOM ITEM GENERATOR
+  ────────────────────────────────────────────── */
+  document.getElementById('itemBtn').addEventListener('click', function () {
+    // Pick a random item
+    const item = getRandom(items);
+
+    // Build the result HTML — show rarity too!
+    const html = `
+      ${item.emoji}
+      You found
+      <span class="highlight">${item.name}</span>
+      &nbsp;[${item.rarity}]
+      ${item.emoji}
+    `;
+
+    showResult('itemResult', html);
+  });
+
+  // Reset button for item card
+  document.getElementById('itemReset').addEventListener('click', function () {
+    hideResult('itemResult');
+  });
+
+</script>
+
+</body>
+</html>
